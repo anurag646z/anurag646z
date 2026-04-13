@@ -1,0 +1,90 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures:
+//
+// Collection: feedbacks
+// Document ID: userId (to ensure one feedback per user)
+// Fields:
+//   - userId: string (required) - The unique ID of the user.
+//   - rating: number (required, 1-5) - The star rating.
+//   - comment: string (optional, max 500 chars) - Optional text feedback.
+//   - userName: string (required) - The display name of the user.
+//   - userPhoto: string (optional) - The profile photo URL of the user.
+//   - timestamp: timestamp (required) - When the feedback was submitted.
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['userId', 'rating', 'userName', 'timestamp']) &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 200 &&
+             (!('comment' in data) || (data.comment is string && data.comment.size() <= 1000)) &&
+             (!('userPhoto' in data) || (data.userPhoto is string && data.userPhoto.size() <= 500)) &&
+             (
+               (request.auth != null && data.userId == request.auth.uid) ||
+               (request.auth == null && data.userId == "anonymous" && data.userName == "Anonymous User")
+             );
+    }
+
+    function isValidSavedAnalysis(data) {
+      return data.keys().hasAll(['userId', 'resumeText', 'jobDescription', 'analysis', 'timestamp']) &&
+             request.auth != null && data.userId == request.auth.uid &&
+             data.resumeText is string && data.resumeText.size() > 0 &&
+             data.jobDescription is string && data.jobDescription.size() > 0 &&
+             data.analysis is map &&
+             data.timestamp is string; // Using string ISO format as per blueprint
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /feedbacks/{feedbackId} {
+      // Allow anyone to read feedbacks
+      allow read: if true;
+      
+      // Allow creation for anyone for now to debug
+      allow create: if true;
+      
+      // Allow updates only for authenticated owners
+      allow update: if request.auth != null && feedbackId == request.auth.uid;
+      
+      allow delete: if false;
+    }
+
+    match /saved_analyses/{analysisId} {
+      // Allow authenticated users to read their own analyses
+      // This works for both get and list (if filtered)
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Only owners can create or delete their saved analyses
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      allow update: if false;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

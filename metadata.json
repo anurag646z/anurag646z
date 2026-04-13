@@ -1,0 +1,5 @@
+{
+  "name": "AI Resume Editor",
+  "description": "An AI-powered resume analysis and optimization tool that matches your resume against job descriptions using expert persona analysis.",
+  "requestFramePermissions": ["clipboard-read", "clipboard-write"]
+}

@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply antialiased text-slate-900 bg-slate-50;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Performance optimizations for mobile/tablet */
+@media (max-width: 1024px) {
+  * {
+    /* Reduce paint operations on mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .motion-safe-gpu {
+    transform: translate3d(0, 0, 0);
+    will-change: transform, opacity;
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback and rating for the AI Resume Editor.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The unique ID of the user." },
+        "rating": { "type": "number", "description": "The star rating (1-5)." },
+        "comment": { "type": "string", "description": "Optional text feedback." },
+        "userName": { "type": "string", "description": "The display name of the user." },
+        "userPhoto": { "type": "string", "description": "The profile photo URL of the user." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the feedback was submitted." }
+      },
+      "required": ["userId", "rating", "userName", "timestamp"]
+    },
+    "SavedAnalysis": {
+      "title": "Saved Analysis",
+      "description": "A saved resume analysis result for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The unique ID of the user." },
+        "userName": { "type": "string", "description": "The display name of the user." },
+        "userEmail": { "type": "string", "description": "The email of the user." },
+        "resumeText": { "type": "string", "description": "The original resume text." },
+        "jobDescription": { "type": "string", "description": "The target job description." },
+        "analysis": { "type": "object", "description": "The full analysis result object." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the analysis was saved." }
+      },
+      "required": ["userId", "resumeText", "jobDescription", "analysis", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/feedbacks/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "Collection of user feedbacks."
+    },
+    "/saved_analyses/{analysisId}": {
+      "schema": "SavedAnalysis",
+      "description": "Collection of saved resume analyses."
+    }
+  }
+}
